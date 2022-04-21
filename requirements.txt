@@ -5,3 +5,4 @@ nltk==3.7
 pyresparser
 python_docx==0.8.11
 en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.3.1/en_core_web_sm-2.3.1.tar.gz
+gunicorn
