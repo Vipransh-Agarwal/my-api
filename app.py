@@ -7,8 +7,10 @@ import urllib.request
 import nltk
 nltk.download('stopwords')
 
+UPLOAD_FOLDER = './uploads'
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 api = Api(app)
 
 resume_data_post_args = reqparse.RequestParser()
@@ -42,17 +44,18 @@ def myResumeParser(filed):
 
 
 class Resume(Resource):
-    def get(self, id, ext):
-        name = f"./uploads/{ext}_file_{id}.{ext}"
+    def get(self, ext):
+        name = f"./uploads/{ext}_file.{ext}"
         return myResumeParser(name)
 
-    def post(self, id, ext):
+    def post(self, ext):
         args = resume_data_post_args.parse_args()
-        save_at = f"./uploads/{ext}_file_{id}"
+        save_at = f"./uploads/{ext}_file"
         download_file(args['link'], save_at, ext)
         return(f"File Downloaded at {save_at}")
 
-api.add_resource(Resume, '/resume-data/<int:id>/<string:ext>')
+
+api.add_resource(Resume, '/resume-data/<string:ext>')
 
 
 if __name__ == '__main__':
