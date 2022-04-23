@@ -1,8 +1,8 @@
 from docx import Document
-import os
 from pyresparser import ResumeParser
 from flask import Flask
-from flask_restful import Resource, Api, reqparse, abort
+from flask_restful import Resource, Api, reqparse
+import urllib.request
 
 import nltk
 nltk.download('stopwords')
@@ -11,11 +11,21 @@ nltk.download('stopwords')
 app = Flask(__name__)
 api = Api(app)
 
-data = {}
-
 resume_data_post_args = reqparse.RequestParser()
 resume_data_post_args.add_argument(
-    'info', type=str, help='resume path', required=True)
+    'link', type=str, help='file link', required=True)
+
+
+def download_file(download_url, filename, extension):
+    response = urllib.request.urlopen(download_url)
+    if extension == 'docx':
+        file = open(filename + ".docx", 'wb')
+        file.write(response.read())
+        file.close()
+    if extension == 'pdf':
+        file = open(filename + ".pdf", 'wb')
+        file.write(response.read())
+        file.close()
 
 
 def myResumeParser(filed):
@@ -31,25 +41,18 @@ def myResumeParser(filed):
         return data
 
 
-class Resume_Data(Resource):
-    def get(self):
-        return data
-
-
 class Resume(Resource):
-    def get(self, data_id):
-        return data[data_id]
+    def get(self, id, ext):
+        name = f"./uploads/{ext}_file_{id}.{ext}"
+        return myResumeParser(name)
 
-    def post(self, data_id):
+    def post(self, id, ext):
         args = resume_data_post_args.parse_args()
-        if data_id in data:
-            abort(409, message="ID already there")
-        data[data_id] = {'info': myResumeParser(args['info'])}
-        return data[data_id]
+        save_at = f"./uploads/{ext}_file_{id}"
+        download_file(args['link'], save_at, ext)
+        return(f"File Downloaded at {save_at}")
 
-
-api.add_resource(Resume_Data, '/resume-data')
-api.add_resource(Resume, '/resume-data/<int:data_id>')
+api.add_resource(Resume, '/resume-data/<int:id>/<string:ext>')
 
 
 if __name__ == '__main__':
