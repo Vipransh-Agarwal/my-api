@@ -7,27 +7,25 @@ import urllib.request
 import nltk
 nltk.download('stopwords')
 
-UPLOAD_FOLDER = './uploads'
-
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 api = Api(app)
+
 
 resume_data_post_args = reqparse.RequestParser()
 resume_data_post_args.add_argument(
     'link', type=str, help='file link', required=True)
 
 
-def download_file(download_url, filename, extension):
+def download_file(download_url, filename):
     response = urllib.request.urlopen(download_url)
-    if extension == 'docx':
-        file = open(filename + ".docx", 'wb')
-        file.write(response.read())
-        file.close()
-    if extension == 'pdf':
-        file = open(filename + ".pdf", 'wb')
-        file.write(response.read())
-        file.close()
+    # if extension == 'docx':
+    #     file = open(filename + ".docx", 'wb')
+    #     file.write(response.read())
+    #     file.close()
+    # if extension == 'pdf':
+    file = open(filename + ".pdf", 'wb')
+    file.write(response.read())
+    file.close()
 
 
 def myResumeParser(filed):
@@ -44,18 +42,18 @@ def myResumeParser(filed):
 
 
 class Resume(Resource):
-    def get(self, ext):
-        name = f"./uploads/{ext}_file.{ext}"
+    def get(self, id):
+        name = f"./uploads/file_{id}.pdf"
         return myResumeParser(name)
 
-    def post(self, ext):
+    def post(self, id):
         args = resume_data_post_args.parse_args()
-        save_at = f"./uploads/{ext}_file"
-        download_file(args['link'], save_at, ext)
+        save_at = f"./uploads/file_{id}"
+        download_file(args['link'], save_at)
         return(f"File Downloaded at {save_at}")
 
 
-api.add_resource(Resume, '/resume-data/<string:ext>')
+api.add_resource(Resume, '/resume-data/<int:id>')
 
 
 if __name__ == '__main__':
